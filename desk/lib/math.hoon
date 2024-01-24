@@ -4,7 +4,6 @@
 ::  Pure Hoon implementations are naive formally correct algorithms,
 ::  awaiting efficient jetting with GNU Scientific Library.
 ::
-/+  twoc
 |%
 ++  rs
   ^|
@@ -621,6 +620,36 @@
     =/  term3  (mul (add z .1) (add z .1))
     =/  term  (mul term1 (pow-n (div term2 term3) i))
     $(i (add i .1), p (add p term), po p)
+  ::    +log-10:  @rs -> @rs
+  ::
+  ::  Returns the base-10 logarithm of a floating-point atom.
+  ::    Examples
+  ::      > (log-10 .0.1)
+  ::      .-0.999989
+  ::      > (log-10 .2)
+  ::      .0.30102932
+  ::      > (~(log-10 rs [%z .1e-8]) .2)
+  ::      .0.3010301
+  ::      > (log-10 .inf)
+  ::      .inf
+  ::  Source
+  ++  log-10
+    |=  z=@rs  ^-  @rs
+    (div (log z) log10)
+  ::    +log-2:  @rs -> @rs
+  ::
+  ::  Returns the base-2 logarithm of a floating-point atom.
+  ::    Examples
+  ::      > (log-2 .0.1)
+  ::      .-3.321928
+  ::      > (log-2 .2)
+  ::      .1.5849625
+  ::      > (~(log-2 rs [%z .1e-8]) .2)
+  ::      .1.5849633
+  ::  Source
+  ++  log-2
+    |=  z=@rs  ^-  @rs
+    (div (log z) log2)
   ::    +pow:  [@rs @rs] -> @rs
   ::
   ::  Returns the power of a floating-point atom to a floating-point exponent.
@@ -706,6 +735,74 @@
   ::      .1
   ::  Source
   ++  arg  abs
+  ::    +round:  [@rs @ud] -> @rs
+  ::
+  ::  Returns the floating-point atom rounded to a given number of decimal
+  ::  places.
+  ::    Examples
+  ::      > (round .1 0)
+  ::      .1
+  ::      > (round .1.11 1)
+  ::      .1.1
+  ::      > (round .1.11 2)
+  ::      .1.11
+  ::      > (round .1.11 3)
+  ::      .1.11
+  ::  Source
+  ++  round
+    |=  [x=@rs n=@ud]  ^-  @rs
+    ?:  =(.0 x)  .0
+    ::  Calculate the order of magnitude.
+    =/  oom  (san (need (toi (log-10 (abs x)))))
+    ::  Calculate the scaling factor.
+    =/  scaling  (pow .10 :(sub (sun n) oom .1))
+    ::  Round the mantissa to desired significant digits.
+    =/  rnd-mantissa  (round-bankers (mul x scaling))
+    ::  Convert back to the original scale.
+    (div rnd-mantissa scaling)
+  ::    +round-places:  [@rs @ud] -> @rs
+  ::
+  ::  Returns the floating-point atom rounded to a given number of decimal
+  ::  places.  This is exceptionally sensitive to off-by-one FP rounding error.
+  ::    Examples
+  ::      > (round-places .1 0)
+  ::      .1
+  ::      > (round-places .1.11 1)
+  ::      .1.1
+  ::      > (round-places .1.285 2)
+  ::      .1.28
+  ::      > (round-places .4.12345 3)
+  ::      .4.1229997
+  ::  Source
+  ++  round-places
+    |=  [x=@rs n=@ud]  ^-  @rs
+    ::  Calculate the scaling factor.
+    =/  scaling  (pow .10 (sun n))
+    ::  Scale the number.
+    =/  scaled  (mul x scaling)
+    ::  Round the mantissa to desired significant digits.
+    =/  rnd-mantissa  (round-bankers scaled)
+    ::  Convert back to the original scale.
+    (div rnd-mantissa scaling)
+  ::    +round-bankers:  @rs -> @rs
+  ::
+  ::  Returns the floating-point atom rounded to the nearest integer, with
+  ::  ties rounded to the nearest even integer.
+  ::    Examples
+  ::      > (round-bankers .1)
+  ::      .1
+  ::      > (round-bankers .1.5)
+  ::      .2
+  ::      > (round-bankers .1.49)
+  ::      .1
+  ::  Source
+  ++  round-bankers
+    |=  x=@rs  ^-  @rs
+    =/  int  (san (need (toi x)))
+    =/  dcm  (sub x int)
+    ?:  (lth dcm .0.5)
+      int
+    (add int .1)
   --
 ::  double precision
 ++  rd
@@ -1306,6 +1403,34 @@
     =/  term3  (mul (add z .~1) (add z .~1))
     =/  term  (mul term1 (pow-n (div term2 term3) i))
     $(i (add i .~1), p (add p term), po p)
+  ::    +log-10:  @rd -> @rd
+  ::
+  ::  Returns the base-10 logarithm of a floating-point atom.
+  ::    Examples
+  ::      > (log-10 .~0.1)
+  ::      .~-0.9999999999082912
+  ::      > (log-10 .~2)
+  ::      .~0.30102999566353394
+  ::      > (~(log-10 rd [%z .~1e-8]) .~2)
+  ::      .~0.30102999562024696
+  ::  Source
+  ++  log-10
+    |=  z=@rd  ^-  @rd
+    (div (log z) log10)
+  ::    +log-2:  @rd -> @rd
+  ::
+  ::  Returns the base-2 logarithm of a floating-point atom.
+  ::    Examples
+  ::      > (log-2 .0.1)
+  ::      .~-3.321928094582713
+  ::      > (log-2 .2)
+  ::      .~0.9999999999985144
+  ::      > (~(log-2 rs [%z .1e-8]) .2)
+  ::      .~0.9999999998547181
+  ::  Source
+  ++  log-2
+    |=  z=@rd  ^-  @rd
+    (div (log z) log2)
   ::    +pow:  [@rd @rd] -> @rd
   ::
   ::  Returns the power of a floating-point atom to a floating-point exponent.
@@ -1391,6 +1516,74 @@
   ::      .~1
   ::  Source
   ++  arg  abs
+  ::    +round:  [@rs @ud] -> @rs
+  ::
+  ::  Returns the floating-point atom rounded to a given number of decimal
+  ::  places.
+  ::    Examples
+  ::      > (round .1 0)
+  ::      .1
+  ::      > (round .1.11 1)
+  ::      .1.1
+  ::      > (round .1.11 2)
+  ::      .1.11
+  ::      > (round .1.11 3)
+  ::      .1.11
+  ::  Source
+  ++  round
+    |=  [x=@rd n=@ud]  ^-  @rd
+    ?:  =(.~0 x)  .~0
+    ::  Calculate the order of magnitude.
+    =/  oom  (san (need (toi (log-10 (abs x)))))
+    ::  Calculate the scaling factor.
+    =/  scaling  (pow .~10 :(sub (sun n) oom .~1))
+    ::  Round the mantissa to desired significant digits.
+    =/  rnd-mantissa  (round-bankers (mul x scaling))
+    ::  Convert back to the original scale.
+    (div rnd-mantissa scaling)
+  ::    +round-places:  [@rs @ud] -> @rs
+  ::
+  ::  Returns the floating-point atom rounded to a given number of decimal
+  ::  places.  This is exceptionally sensitive to off-by-one FP rounding error.
+  ::    Examples
+  ::      > (round-places .1 0)
+  ::      .1
+  ::      > (round-places .1.11 1)
+  ::      .1.1
+  ::      > (round-places .1.285 2)
+  ::      .1.28
+  ::      > (round-places .4.12345 3)
+  ::      .4.1229997
+  ::  Source
+  ++  round-places
+    |=  [x=@rd n=@ud]  ^-  @rd
+    ::  Calculate the scaling factor.
+    =/  scaling  (pow .~10 (sun n))
+    ::  Scale the number.
+    =/  scaled  (mul x scaling)
+    ::  Round the mantissa to desired significant digits.
+    =/  rnd-mantissa  (round-bankers scaled)
+    ::  Convert back to the original scale.
+    (div rnd-mantissa scaling)
+  ::    +round-bankers:  @rs -> @rs
+  ::
+  ::  Returns the floating-point atom rounded to the nearest integer, with
+  ::  ties rounded to the nearest even integer.
+  ::    Examples
+  ::      > (round-bankers .1)
+  ::      .1
+  ::      > (round-bankers .1.5)
+  ::      .2
+  ::      > (round-bankers .1.49)
+  ::      .1
+  ::  Source
+  ++  round-bankers
+    |=  x=@rd  ^-  @rd
+    =/  int  (san (need (toi x)))
+    =/  dcm  (sub x int)
+    ?:  (lth dcm .~0.5)
+      int
+    (add int .~1)
   --
 ::  half precision
 ++  rh
