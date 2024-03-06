@@ -10,7 +10,7 @@ We support the following functions and special functions:
 - $\text{sgn}$ signum
 - $-$ unary negation
 - $!$ factorial
-- $\abs$
+- $\text{abs}$
 - $\exp$
 - $\sin$
 - $\cos$
