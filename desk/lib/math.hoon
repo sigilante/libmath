@@ -2178,6 +2178,24 @@
     =/  term3  (mul (add z .~~1) (add z .~~1))
     =/  term  (mul term1 (pow-n (div term2 term3) i))
     $(i (add i .~~1), p (add p term), po p)
+  ::    +log-10:  @rh -> @rh
+  ::
+  ::  Returns the base-10 logarithm of a floating-point atom.
+  ::    Examples
+  ::      TODO
+  ::  Source
+  ++  log-10
+    |=  z=@rh  ^-  @rh
+    (div (log z) log10)
+  ::    +log-2:  @rh -> @rh
+  ::
+  ::  Returns the base-2 logarithm of a floating-point atom.
+  ::    Examples
+  ::      TODO
+  ::  Source
+  ++  log-2
+    |=  z=@rh  ^-  @rh
+    (div (log z) log2)
   ::    +pow:  [@rh @rh] -> @rh
   ::
   ::  Returns the power of a floating-point atom to a floating-point exponent.
@@ -2858,6 +2876,24 @@
     =/  term3  (mul (add z .~~~1) (add z .~~~1))
     =/  term  (mul term1 (pow-n (div term2 term3) i))
     $(i (add i .~~~1), p (add p term), po p)
+  ::    +log-10:  @rq -> @rq
+  ::
+  ::  Returns the base-10 logarithm of a floating-point atom.
+  ::    Examples
+  ::      TODO
+  ::  Source
+  ++  log-10
+    |=  z=@rq  ^-  @rq
+    (div (log z) log10)
+  ::    +log-2:  @rq -> @rq
+  ::
+  ::  Returns the base-2 logarithm of a floating-point atom.
+  ::    Examples
+  ::      TODO
+  ::  Source
+  ++  log-2
+    |=  z=@rq  ^-  @rq
+    (div (log z) log2)
   ::    +pow:  [@rq @rq] -> @rq
   ::
   ::  Returns the power of a floating-point atom to a floating-point exponent.
